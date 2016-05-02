@@ -30,6 +30,7 @@ endif
 
 DLLFLAG=-fPIC
 OMP=-fopenmp
+CUDA_STATIC=--cudart static -Xcompiler "-static-libgcc -static-libstdc++"
 
 CPPOPT=-g -Wall -O3 -std=c99 # -DUSE_OS_TIMER
 
@@ -40,30 +41,35 @@ FILES=mcx_core mcx_utils mcx_shapes tictoc mcextreme cjson/cJSON
 
 ARCH = $(shell uname -m)
 PLATFORM = $(shell uname -s)
-ifeq ($(findstring MINGW32,$(PLATFORM)), MINGW32)
+ifeq ($(findstring CYGWIN,$(PLATFORM)), CYGWIN)
   CC=nvcc
-  LINKOPT=-L/c/CUDA/lib -lcudart --link
+  LINKOPT=-L/c/CUDA/lib -lcudart --link 
   INCLUDEDIRS +=-I/c/CUDA/include
   CPPOPT =-c -D_CRT_SECURE_NO_DEPRECATE -DWIN32
   OBJSUFFIX=.obj
   EXESUFFIX=.exe
   DLLFLAG=
+  OMP=-Xcompiler /openmp
+  CUCCOPT+=-Xcompiler "/openmp /W0"
+  CUDA_STATIC=--cudart static $(OMP) -Xcompiler /MT
+else ifeq ($(findstring Darwin,$(PLATFORM)), Darwin)
+  CUDA_STATIC=--cudart static
 else
+  CUCCOPT+=-Xcompiler $(OMP)
   ifeq ($(findstring x86_64,$(ARCH)), x86_64)
      CPPOPT +=-m64
      CUCCOPT +=-m64
      ifeq "$(wildcard /usr/local/cuda/lib64)" "/usr/local/cuda/lib64"
         ifeq ($(BACKEND),cuda)
-           LINKOPT=-L/usr/local/cuda/lib64 -lcudart -lm -lstdc++ $(OMP)
+           LINKOPT=-L/usr/local/cuda/lib64 -lcudart -lm -lstdc++
         endif
      endif
   endif
 endif
 
-CUCCOPT+=-Xcompiler -fopenmp
-CPPOPT+=-fopenmp
-
+CPPOPT+=$(OMP)
 CUGENCODE=-arch=sm_20
+CUOMPLINK=
 
 all logfast:CUCCOPT+=-use_fast_math
 xor:        CUCCOPT+=-DUSE_XORSHIFT128P_RAND
@@ -75,9 +81,10 @@ racing:     CUCCOPT+=-DTEST_RACING
 xoratomic:  CUCCOPT+=-DUSE_XORSHIFT128P_RAND -DUSE_ATOMIC -use_fast_math $(CUGENCODE) MCX_TARGET_NAME='"Xorshift128+ Atomic MCX"'
 logatomic:  CUCCOPT+=-DUSE_ATOMIC -use_fast_math $(CUGENCODE) -DMCX_TARGET_NAME='"LL5 Atomic MCX"'
 fermi fermimex fermioct:      CUCCOPT+=-DUSE_ATOMIC -use_fast_math
-fermimex fermioct:   OMP:=
+fermi:      LINKOPT+=$(CUOMPLINK) $(OMP)
 maxwellmex: fermimex
 maxwelloct: fermioct
+maxwellmex maxwelloct: CUCCOPT+=-DUSE_XORSHIFT128P_RAND
 maxwelloct maxwellmex: CUGENCODE=-arch=compute_20 -code=sm_20 -code=sm_30 -code=sm_35 -code=sm_50 -code=sm_52
 
 xorbox logbox:		CUCCOPT+=-DUSE_CACHEBOX -use_fast_math $(CUGENCODE) -DMCX_TARGET_NAME='"Cachebox MCX"'
@@ -96,7 +103,8 @@ xormax:     CUCCOPT+=-DUSE_XORSHIFT128P_RAND
 
 static:     xormax
 static:     AR=nvcc
-static:     LINKOPT=--cudart static -Xcompiler "-static-libgcc -static-libstdc++ -fopenmp"
+static:     CUOMPLINK=-Xcompiler
+static:     LINKOPT=$(CUDA_STATIC)
 
 mexbox fermimex:        AR=mex
 mexbox fermimex:        LINKOPT+= CXXFLAGS='$$CXXFLAGS -DSAVE_DETECTORS -DUSE_CACHEBOX -DMCX_CONTAINER -fopenmp' -lgomp LDFLAGS='$$LDFLAGS -fopenmp'

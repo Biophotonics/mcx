@@ -1,12 +1,7 @@
 /*********************************************************************
-*A Random Number Generator based on coupled chaotic Logistic lattice *
+*   A Random Number Generator based on the xorshift128+ algorithm    *
 *                                                                    *
-*  (both double and single precision random numbers are supported)   *
-*                                                                    *
-*  Author: Qianqian Fang <q.fang at neu.edu>              *
-*                                                                    *
-*  History: 2009/03/02  CUDA version based on Neal Wagner 1993       *
-*         http://www.cs.utsa.edu/~wagner/pubs/logistic/logistic.pdf  *
+*   Author: Qianqian Fang <q.fang at neu.edu>                        *
 *                                                                    *
 *********************************************************************/
 
@@ -17,8 +12,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
-#include <ieee754.h>
 #include <stdint.h>
+
+#if defined(__clang__) || defined(_MSC_VER)
+  #include "mcx_ieee754.h"
+#else
+  #include <ieee754.h>
+#endif
 
 #define MCX_RNG_NAME       "xorshift128+"
 
