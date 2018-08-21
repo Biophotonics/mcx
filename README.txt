@@ -3,9 +3,10 @@
                           CUDA Edition
 ---------------------------------------------------------------------
 
-Author: Qianqian Fang <q.fang at neu.edu>
+Author:  Qianqian Fang <q.fang at neu.edu>
 License: GNU General Public License version 3 (GPLv3)
-Version: 1.0-beta (v2016.4, Dark Matter - Beta)
+Version: 1.0 Final (v2018, Dark Matter - Final)
+Website: http://mcx.space
 
 ---------------------------------------------------------------------
 
@@ -20,7 +21,8 @@ VI.   Using MCXLAB in MATLAB and Octave
 VII.  Using MCX Studio GUI
 VIII. Interpreting the Outputs
 IX.   Best practices guide
-X.    Reference
+X.    Acknowledgement
+XI.   Reference
 
 ---------------------------------------------------------------------
 
@@ -34,14 +36,14 @@ Carlo (MC) simulations at a blazing speed, typically hundreds to
 a thousand times faster than a fully optimized CPU-based MC 
 implementation.
 
-The algorithm of this software is detailed in the Reference [1]. 
+The algorithm of this software is detailed in the References [1,2]. 
 A short summary of the main features includes:
 
 *. 3D heterogeneous media represented by voxelated array
 *. support over a dozen source forms, including wide-field and pattern illuminations
 *. boundary reflection support
 *. time-resolved photon transport simulations
-*. saving photon partial path lengths at the detectors
+*. saving photon partial path lengths and trajectories
 *. optimized random number generators
 *. build-in flux/fluence normalization to output Green's functions
 *. user adjustable voxel resolution
@@ -49,12 +51,13 @@ A short summary of the main features includes:
 *. cross-platform graphical user interface
 *. native Matlab/Octave support for high usability
 *. flexible JSON interface for future extensions
+*. multi-GPU support
 
 This software can be used on Windows, Linux and Mac OS. 
 MCX is written in CUDA and can be used with NVIDIA hardware
 with the native NVIDIA drivers, or used with the open-source
 GPU Ocelot libraries for CPUs and AMD GPUs. An OpenCL implementation 
-of MCX, i.e. MCX-CL, was announced on July, 2012. It supports
+of MCX, i.e. MCXCL, was announced on July, 2012. It supports
 NVIDIA/AMD/Intel hardware out-of-box. If your hardware does
 not support CUDA, please download MCXCL from the below URL:
 
@@ -73,18 +76,19 @@ instructions.
 For MCX-CUDA, the requirements for using this software include
 
 *. a CUDA capable NVIDIA graphics card
-*. pre-installed CUDA toolkit [1]
 *. pre-installed NVIDIA graphics driver
 
 You must use a CUDA capable NVIDIA graphics card in order to use
 MCX. A list of CUDA capable cards can be found at [2]. The oldest 
-graphics card that MCX supports is GeForce 8XXX series (circa 2006).
+graphics card that MCX supports is the Fermi series (circa 2010).
 Using the latest NVIDIA card is expected to produce the best
-speed (GTX 4xx is twice faster than 2xx, which is twice faster than 
-8800/9800). To use the "fermi" version of MCX, you must have a 
-fermi (GTX 4xx) or newer (5xx/6xx/7xx series) graphics card.
-The fermi version of MCX supports atomic operations and photon
-detection within a single binary.
+speed. You must have a fermi (GTX 4xx) or newer 
+(5xx/6xx/7xx/9xx/10xx series) graphics card. The default release 
+of MCX supports atomic operations and photon detection within a 
+single binary. In the below webpage, we summarized the speed differences
+between different generations of NVIDIA GPUs
+
+http://mcx.space/gpubench/
 
 For simulations with large volumes, sufficient graphics memory 
 is also required to perform the simulation. The minimum amount of 
@@ -95,22 +99,31 @@ tissue volume, Ng is the number of concurrent time gates, 4 is
 the size of a single-precision floating-point number.
 MCX does not require double-precision support in your hardware.
 
-In addition to the hardware support, it is critical to install
-your CUDA library and NVIDIA driver correctly before running MCX.
-You should always install the matching CUDA version to the binary
-package you have downloaded. For example, if you have downloaded 
-the "cuda4" version of MCX, you should install CUDA 4.x on your 
-computer; if your MCX package has "cuda5.5" in the file name, you
-should install CUDA 5.5. Always download and install the matching
-NVIDIA driver linked from the CUDA download page. Once installed,
-follow the below URL to verify the installation is correct:
-
-http://docs.nvidia.com/cuda/cuda-getting-started-guide-for-microsoft-windows/index.html#verify-installation
-
 To install MCX, you need to download the binary executable compiled for your 
 computer architecture (32 or 64bit) and platform, extract the package 
-and run the executable under the <mcx root>/bin directory. For Linux
-and MacOS users, you need to add the following lines to your
+and run the executable under the <mcx root>/bin directory. 
+
+For Windows users, you must make sure you have installed the appropriate
+NVIDIA driver for your GPU. You should also configure your OS to run
+CUDA simulations. This requires you to open the mcx/setup/win64 folder
+using your file explorer, right-click on the "apply_timeout_registry_fix.bat"
+file and select "Run as administrator". After confirmation, you should 
+see a windows command window with message 
+
+  Patching your registry
+  Done
+  Press any key to continue ...
+
+You must reboot your Windows computer to make this setting effective.
+The above patch modifies your driver settings so that you can run MCX 
+simulations for longer than a few seconds. Otherwise, when running MCX
+for over a few seconds, you will get a CUDA error: "unspecified error".
+
+Please see the below link for details
+
+http://mcx.space/wiki/index.cgi?Doc/FAQ#I_am_getting_a_kernel_launch_timed_out_error_what_is_that
+
+For Linux and MacOS users, you need to add the following lines to your
 shell initialization scripts. First, use "echo $SHELL" command to 
 identify your shell type. For csh/tcsh, add the following lines 
 to your ~/.cshrc file:
@@ -148,67 +161,116 @@ such as the following:
 
 <pre>###############################################################################
 #                      Monte Carlo eXtreme (MCX) -- CUDA                      #
-#          Copyright (c) 2009-2016 Qianqian Fang <q.fang at neu.edu>          #
+#          Copyright (c) 2009-2018 Qianqian Fang <q.fang at neu.edu>          #
 #                             http://mcx.space/                               #
 #                                                                             #
-#         Computational Imaging Laboratory (CIL) [http://fanglab.org]         #
+# Computational Optics & Translational Imaging (COTI) Lab- http://fanglab.org #
 #            Department of Bioengineering, Northeastern University            #
 ###############################################################################
 #    The MCX Project is funded by the NIH/NIGMS under grant R01-GM114365      #
 ###############################################################################
-$Rev::c52b47 $ Last $Date::2016-04-06 01:50:15 -04$ by $Author::Qianqian Fang $
+$Rev::7850c3 $ Last $Date::2018-07-21 12:28:44 -04$ by $Author::Qianqian Fang $
 ###############################################################################
 
 usage: mcx <param1> <param2> ...
-where possible parameters include (the first item in [] is the default value)
- -i 	       (--interactive) interactive mode
- -s sessionid  (--session)     a string to label all output file names
- -f config     (--input)       read config from a file
+where possible parameters include (the first value in [*|*] is the default)
+
+== Required option ==
+ -f config     (--input)       read an input file in .json or .inp format
+
+== MC options ==
+
  -n [0|int]    (--photon)      total photon number (exponential form accepted)
+                               max accepted value:9.2234e+18 on 64bit systems
+ -r [1|+/-int] (--repeat)      if positive, repeat by r times,total= #photon*r
+                               if negative, divide #photon into r subsets
+ -b [1|0]      (--reflect)     1 to reflect photons at ext. boundary;0 to exit
+ -B [0|1]      (--reflectin)   1 to reflect photons at int. boundary; 0 do not
+ -u [1.|float] (--unitinmm)    defines the length unit for the grid edge
+ -U [1|0]      (--normalize)   1 to normalize flux to unitary; 0 save raw
+ -E [0|int|mch](--seed)        set random-number-generator seed, -1 to generate
+                               if an mch file is followed, MCX "replays" 
+                               the detected photon; the replay mode can be used
+                               to calculate the mua/mus Jacobian matrices
+ -z [0|1]      (--srcfrom0)    1 volume origin is [0 0 0]; 0: origin at [1 1 1]
+ -R [-2|float] (--skipradius)  -2: use atomics for the entire domain (default)
+                                0: vanilla MCX, no atomic operations
+                               >0: radius in which use shared-memory atomics
+                               -1: use crop0/crop1 to determine atomic zone
+ -k [1|0]      (--voidtime)    when src is outside, 1 enables timer inside void
+ -Y [0|int]    (--replaydet)   replay only the detected photons from a given 
+                               detector (det ID starts from 1), used with -E 
+			       if 0, replay all detectors and sum all Jacobians
+			       if -1, replay all detectors and save separately
+ -P '{...}'    (--shapes)      a JSON string for additional shapes in the grid
+ -V [0|1]      (--specular)    1 source located in the background,0 inside mesh
+ -N [10^7|int] (--reseed)      number of scattering events before reseeding RNG
+ -e [0.|float] (--minenergy)   minimum energy level to terminate a photon
+ -g [1|int]    (--gategroup)   number of time gates per run
+ -a [0|1]      (--array)       1 for C array (row-major); 0 for Matlab array
+
+== GPU options ==
+ -L            (--listgpu)     print GPU information only
  -t [16384|int](--thread)      total thread number
  -T [64|int]   (--blocksize)   thread number per block
  -A [0|int]    (--autopilot)   auto thread config:1 dedicated GPU;2 non-dedica.
  -G [0|int]    (--gpu)         specify which GPU to use, list GPU by -L; 0 auto
       or
  -G '1101'     (--gpu)         using multiple devices (1 enable, 0 disable)
- -r [1|int]    (--repeat)      number of repetitions
- -a [0|1]      (--array)       1 for C array (row-major); 0 for Matlab array
- -z [0|1]      (--srcfrom0)    1 volume coord. origin [0 0 0]; 0 use [1 1 1]
- -g [1|int]    (--gategroup)   number of time gates per run
- -b [1|0]      (--reflect)     1 to reflect photons at ext. boundary;0 to exit
- -B [0|1]      (--reflectin)   1 to reflect photons at int. boundary; 0 do not
- -e [0.|float] (--minenergy)   minimum energy level to terminate a photon
- -R [-2|float] (--skipradius)  0: vanilla MCX, no atomic operations
-                               >0: radius in which use shared-memory atomics
-                               -1: use crop0/crop1 to determine atomic zone
-                               -2: use atomics for the entire domain (default)
- -u [1.|float] (--unitinmm)    defines the length unit for the grid edge
- -U [1|0]      (--normalize)   1 to normalize flux to unitary; 0 save raw
+ -W '50,30,20' (--workload)    workload for active devices; normalized by sum
+ -I            (--printgpu)    print GPU information and run program
+
+== Output options ==
+ -s sessionid  (--session)     a string to label all output file names
  -d [1|0]      (--savedet)     1 to save photon info at detectors; 0 not save
+ -x [0|1]      (--saveexit)    1 to save photon exit positions and directions
+                               setting -x to 1 also implies setting '-d' to 1
+ -X [0|1]      (--saveref)     1 to save diffuse reflectance at the air-voxels
+                               right outside of the domain; if non-zero voxels
+			       appear at the boundary, pad 0s before using -X
+ -m [0|1]      (--momentum)    1 to save photon momentum transfer,0 not to save
+ -q [0|1]      (--saveseed)    1 to save photon RNG seed for replay; 0 not save
  -M [0|1]      (--dumpmask)    1 to dump detector volume masks; 0 do not save
  -H [1000000] (--maxdetphoton) max number of detected photons
  -S [1|0]      (--save2pt)     1 to save the flux field; 0 do not save
- -E [0|int|mch](--seed)        set random-number-generator seed, -1 to generate
-                               if an mch file is followed, MMC will "replay" 
-                               the detected photon; the replay mode can be used
- -O [X|XFEJT]  (--outputtype)  X - output flux, F - fluence, E - energy deposit
-                               J - Jacobian (replay mode),   T - approximated
-                               Jacobian (replay mode only)
- -k [1|0]      (--voidtime)    when src is outside, 1 enables timer inside void
- -h            (--help)        print this message
- -l            (--log)         print messages to a log file instead
- -L            (--listgpu)     print GPU information only
- -I            (--printgpu)    print GPU information and run program
- -P '{...}'    (--shapes)      a JSON string for additional shapes in the grid
- -N [10^7|int] (--reseed)      number of scattering events before reseeding RNG
- -Y [0|int]    (--replaydet)   replay only the detected photons from a given 
-                               detector (det ID starts from 1), used with -E 
- -W '50,30,20' (--workload)    workload for active devices; normalized by sum
- -F [0|1]      (--faststep)    1-use fast 1mm stepping, [0]-precise ray-tracing
- -v            (--version)     print MCX revision number
+ -F [mc2|...] (--outputformat) fluence data output format:
+                               mc2 - MCX mc2 format (binary 32bit float)
+                               nii - Nifti format
+                               hdr - Analyze 7.5 hdr/img format
+ -O [X|XFEJP]  (--outputtype)  X - output flux, F - fluence, E - energy deposit
+                               J - Jacobian (replay mode),   P - scattering
+                               event counts at each voxel (replay mode only)
 
+== User IO options ==
+ -h            (--help)        print this message
+ -v            (--version)     print MCX revision number
+ -l            (--log)         print messages to a log file instead
+ -i 	       (--interactive) interactive mode
+
+== Debug options ==
+ -D [0|int]    (--debug)       print debug information (you can use an integer
+  or                           or a string by combining the following flags)
+ -D [''|RMP]                   1 R  debug RNG
+                               2 M  store photon trajectory info
+                               4 P  print progress bar
+      combine multiple items by using a string, or add selected numbers together
+
+== Additional options ==
+ --root         [''|string]    full path to the folder storing the input files
+ --gscatter     [1e9|int]      after a photon completes the specified number of
+                               scattering events, mcx then ignores anisotropy g
+                               and only performs isotropic scattering for speed
+ --maxvoidstep  [1000|int]     maximum distance (in voxel unit) of a photon that
+                               can travel before entering the domain, if 
+                               launched outside (i.e. a widefield source)
+ --maxjumpdebug [1000000|int]  when trajectory is requested (i.e. -D M),
+                               use this parameter to set the maximum positions
+                               stored (default: 1e6)
+ --faststep [0|1]              1-use fast 1mm stepping, [0]-precise ray-tracing
+
+== Example ==
 example: (autopilot mode)
-       mcx -A -n 1e7 -f input.inp -G 1 
+       mcx -A -n 1e7 -f input.inp -G 1 -D P
 or (manual mode)
        mcx -t 16384 -T 64 -n 1e7 -f input.inp -s test -r 2 -g 10 -d 1 -b 1 -G 1
 or (use multiple devices - 1st,2nd and 4th GPUs - together with equal load)
@@ -235,7 +297,7 @@ A typical MCX input file looks like this:
 30.0 30.0 0.0 1      # source position (in grid unit), the last num (optional) sets srcfrom0 (-z)
 0 0 1                # initial directional vector
 0.e+00 1.e-09 1.e-10 # time-gates(s): start, end, step
-semi60x60x60.bin     # volume ('unsigned char' format)
+semi60x60x60.bin     # volume ('unsigned char' binary format)
 1 60 1 60            # x voxel size in mm (isotropic only), dim, start/end indices
 1 60 1 60            # y voxel size, must be same as x, dim, start/end indices 
 1 60 1 60            # y voxel size, must be same as x, dim, start/end indices
@@ -259,6 +321,9 @@ was saved using matlab or fortran, the byte order is column-major,
 and you should use "-a 0" or leave it out of the command line. 
 If it was saved using the fwrite() in C, the order is row-major, 
 and you can either use "-a 1".
+
+You may replace the binary volume file by a JSON-formatted shape file.
+Please refer to Section V for details.
 
 The time gate parameter is specified by three numbers:
 start time, end time and time step size (in seconds). In 
@@ -298,13 +363,10 @@ folder. The same file, qtest.json, is also shown below:
  {
     "Help": {
       "[en]": {
-        "Domain::VolumeFile": "file full path to the volume file, file mst be in the uchar binary format",
+        "Domain::VolumeFile": "file full path to the volume description file, can be a binary or JSON file",
         "Domain::Dim": "dimension of the data array stored in the volume file",
         "Domain::OriginType": "similar to --srcfrom0, 1 if the origin is [0 0 0], 0 if it is [1.0,1.0,1.0]",
-        "Domain::Step": "do not change this, should be always be 1",
-        "Domain::CacheBoxP0": "for cachebox mcx with -R negative_num, this specifies a 3D index for 
-                               a corner of the cache region, in grid unit",
-        "Domain::CacheBoxP1": "the other corner, the starting value of the indices is 1",
+	"Domain::LengthUnit": "define the voxel length in mm, similar to --unitinmm",
         "Domain::Media": "the first medium is always assigned to voxels with a value of 0 or outside of
                          the volume, the second row is for medium type 1, and so on. mua and mus must 
                          be in 1/mm unit",
@@ -317,7 +379,8 @@ folder. The same file, qtest.json, is also shown below:
         "Optode::Detector::Pos": "the grid position of a detector, can be non-integers, in grid unit",
         "Optode::Source::Dir": "the unitary directional vector of the photon at launch",
         "Optode::Source::Type": "source types, must be one of the following: 
-                   pencil,isotropic,cone,gaussian,planar,pattern,fourier,arcsine,disk,fourierx,fourierx2d",
+                   pencil,isotropic,cone,gaussian,planar,pattern,fourier,arcsine,disk,fourierx,fourierx2d,
+		   zgaussian,line,slit,pencilarray,pattern3d",
         "Optode::Source::Param1": "source parameters, 4 floating-point numbers",
         "Optode::Source::Param2": "additional source parameters, 4 floating-point numbers"
       }
@@ -326,9 +389,7 @@ folder. The same file, qtest.json, is also shown below:
 	"VolumeFile": "semi60x60x60.bin",
         "Dim":    [60,60,60],
         "OriginType": 1,
-        "Step":   [1.0,1.0,1.0],
-        "CacheBoxP0": [24,24,1],
-        "CacheBoxP1": [34,34,10],
+	"LengthUnit": 1,
         "Media": [
              {"mua": 0.00, "mus": 0.0, "g": 1.00, "n": 1.0},
              {"mua": 0.005,"mus": 1.0, "g": 0.01, "n": 1.0}
@@ -396,7 +457,7 @@ recommended. In the alternative format, you can use
 to represent any parameter directly in the root level. For example
 
  {
-    "Domain.VolumeFile": "semi60x60x60.bin",
+    "Domain.VolumeFile": "semi60x60x60.json",
     "Session.Photons": 10000000,
     ...
  }
@@ -575,8 +636,8 @@ file and messages printed on the screen.
 
 8.1 Output files
 
-An mc2 file contains the flux distribution from the simulation in 
-the given medium. By default, this flux is a normalized solution 
+An mc2 file contains the fluence-rate distribution from the simulation in 
+the given medium. By default, this fluence-rate is a normalized solution 
 (as opposed to the raw probability) therefore, one can compare this directly 
 to the analytical solutions (i.e. Green's function). The order of storage in the 
 mc2 files is the same as the input file: i.e., if the input is row-major, the 
@@ -584,24 +645,23 @@ output is row-major, and so on. The dimensions of the file are Nx, Ny, Nz, and N
 where Ng is the total number of time gates.
 
 By default, MCX produces the '''Green's function''' of the 
-'''fluence rate''' (or '''flux''') for the given domain and 
-source. Sometime it is also known as the time-domain "two-point" 
-function. If you run MCX with the following command
+'''fluence rate'''  for the given domain and source. Sometime it is also 
+known as the time-domain "two-point" function. If you run MCX with the following command
 
   mcx -f input.inp -s output ....
 
-the flux data will be saved in a file named "output.dat" under
+the fluence-rate data will be saved in a file named "output.dat" under
 the current folder. If you run MCX without "-s output", the
 output file will be named as "input.inp.dat".
 
-To understand this further, you need to know that a '''flux''' is
+To understand this further, you need to know that a '''fluence-rate (Phi(r,t))''' is
 measured by number of particles passing through an infinitesimal 
-spherical surface per '''unit time''' at '''a given location'''.
-The unit of MCX output flux is "1/(mm<sup>2</sup>s)", if the flux is interpreted as the 
-"particle flux" [6], or "J/(mm<sup>2</sup>s)", if it is interpreted as the 
-"energy flux" [6].
+spherical surface per '''unit time''' at '''a given location''' regardless of directions.
+The unit of the MCX output is "W/mm<sup>2 = J/(mm<sup>2</sup>s)", if it is interpreted as the 
+"energy fluence-rate" [6], or "1/(mm<sup>2</sup>s)", if the output is interpreted as the 
+"particle fluence-rate" [6].
 
-The Green's function of the flux simply means that the flux is produced
+The Green's function of the fluence-rate means that it is produced
 by a '''unitary source'''. In simple terms, this represents the 
 fraction of particles/energy that arrives a location per second 
 under '''the radiation of 1 unit (packet or J) of particle or energy 
@@ -614,17 +674,18 @@ defined in the input file. For example, if you type
 
  0.e+00 5.e-09 1e-10  # time-gates(s): start, end, step
 
-in the 5th row in the input file, MCX will produce 50 flux
-distributions, corresponding to the time-windows at [0 0.1] ns, 
-[0.1 0.2]ns ... and [4.9,5.0] ns. To convert the flux distributions
-to the fluence distributions for each time-window, you just need to
-multiply each solution by the width of the window, 0.1 ns in this case. To convert the time-domain flux
-to the continuous-wave (CW) fluence, you need to integrate the
-flux in t=[0,inf]. Assuming the flux after 5 ns is negligible, then the CW
-fluence is simply sum(flux_i*0.1 ns, i=1,50). You can read 
-<tt>mcx/examples/validation/plotsimudata.m</tt>
+in the 5th row in the input file, MCX will produce 50 fluence-rate
+snapshots, corresponding to the time-windows at [0 0.1] ns, 
+[0.1 0.2]ns ... and [4.9,5.0] ns. To convert the fluence rate
+to the fluence for each time-window, you just need to
+multiply each solution by the width of the window, 0.1 ns in this case. 
+To convert the time-dependent fluence-rate to continuous-wave (CW) 
+fluence (fluence in short), you need to integrate the
+fluence-rate along the time dimension. Assuming the fluence-rate after 
+5 ns is negligible, then the CW fluence is simply sum(flux_i*0.1 ns, i=1,50). 
+You can read <tt>mcx/examples/validation/plotsimudata.m</tt>
 and <tt>mcx/examples/sphbox/plotresults.m</tt> for examples 
-to compare an MCX output with the analytical flux/fluence solutions.
+to compare an MCX output with the analytical fluence-rate/fluence solutions.
 
 One can load an mc2 output file into Matlab or Octave using the
 loadmc2 function in the <mcx root>/utils folder. 
@@ -646,6 +707,29 @@ snapshots stored in the solution file is located at
 A more detailed interpretation of the output data can be found at 
 http://mcx.sf.net/cgi-bin/index.cgi?MMC/Doc/FAQ#How_do_I_interpret_MMC_s_output_data
 
+MCX can also output "current density" (J(r,t), unit W/m^2, same as Phi(r,t)) -
+referring to the expected number of photons or Joule of energy flowing
+through a unit area pointing towards a particular direction per unit time.
+The current density can be calculated at the boundary of the domain by two means:
+
+1. using the detected photon partial path output (i.e. the second output of mcxlab.m),
+one can compute the total energy E received by a detector, then one can
+divide E by the area/aperture of the detector to obtain the J(r) at a detector
+(E should be calculated as a function of t by using the time-of-fly of detected
+photons, the E(t)/A gives J(r,t); if you integrate all time gates, the total E/A
+gives the current I(r), instead of the current density).
+
+2. use -X 1 or --saveref/cfg.issaveref option in mcx to enable the
+diffuse reflectance recordings on the boundary. the diffuse reflectance
+is represented by the current density J(r) flowing outward from the domain.
+
+The current density has, as mentioned, the same unit as fluence rate,
+but the difference is that J(r,t) is a vector, and Phi(r,t) is a scalar. Both measuring
+the energy flow across a small area (the are has direction in the case of J) per unit
+time.
+
+You can find more rigorous definitions of these quantities in Lihong Wang's
+Biomedical Optics book, Chapter 5.
 
 8.2 Console print messages
 
@@ -654,6 +738,9 @@ clock starts (at time T0) right before the initialization data is copied
 from CPU to GPU. For each simulation, the elapsed time from T0
 is printed (in ms). Also the accumulated elapsed time is printed for 
 all memory transaction from GPU to CPU.
+
+When a user specifies "-D P" in the command line, or set cfg.debuglevel='P',
+MCX or MCXLAB prints a progress bar showing the percentage of completition.
 
 ---------------------------------------------------------------------------
 IX. Best practices guide
@@ -683,14 +770,76 @@ is recommended. Please use the autopilot mode, "-A", to let MCX determine
 the "optimal" thread number when you are not sure what to use.
 
 ---------------------------------------------------------------------------
-X. Reference
+X. Acknowledgement
+
+=== cJSON library by Dave Gamble ===
+
+  Files included: mcx/src/cJSON folder
+
+  Copyright (c) 2009 Dave Gamble
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+  
+=== myslicer toolbox by Anders Brun ===
+
+  Files included: mcx/utils/{islicer.m, slice3i.m, image3i.m}
+  
+  Copyright (c) 2009 Anders Brun, anders@cb.uu.se
+
+  Redistribution and use in source and binary forms, with or without 
+  modification, are permitted provided that the following conditions are 
+  met:
+
+  * Redistributions of source code must retain the above copyright 
+  notice, this list of conditions and the following disclaimer. 
+  * Redistributions in binary form must reproduce the above copyright 
+  notice, this list of conditions and the following disclaimer in 
+  the documentation and/or other materials provided with the distribution 
+  * Neither the name of the Centre for Image Analysis nor the names 
+  of its contributors may be used to endorse or promote products derived 
+  from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+  POSSIBILITY OF SUCH DAMAGE.
+
+---------------------------------------------------------------------------
+XI. Reference
 
 [1] Qianqian Fang and David A. Boas, "Monte Carlo Simulation of Photon \
 Migration in 3D Turbid Media Accelerated by Graphics Processing Units,"
 Optics Express, vol. 17, issue 22, pp. 20178-20190 (2009).
 
+[2] Leiming Yu, Fanny Nina-Paravecino, David Kaeli, Qianqian Fang, \
+"Scalable and massively parallel Monte Carlo photon transport simulations \
+for heterogeneous computing platforms," J. Biomed. Opt. 23(1), 010504 (2018).
+
 If you use MCX in your research, the author of this software would like
-you to cite the above paper in your related publications.
+you to cite the above papers in your related publications.
 
 Links: 
 

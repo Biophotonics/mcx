@@ -7,14 +7,15 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms
-  { you can add units after this }, mcxgui, LResources, mcxabout;
+  Forms, GLScene_RunTime, mcxgui, lazcontrols, tachartlazaruspkg,
+  anchordockpkg, mcxabout, mcxshape, mcxnewsession, mcxsource, mcxoutput{$IFDEF WINDOWS}, sendkeys{$ENDIF};
 
-{$IFDEF WINDOWS}{$R mcxstudio.rc}{$ENDIF}
+{$R *.res}
 
 begin
+  Application.Scaled:=True;
+  RequireDerivedFormResource:=True;
   Application.Title:='MCX Studio';
-  {$I mcxstudio.lrs}
   Application.Initialize;
   Application.CreateForm(TfmMCX, fmMCX);
   Application.Run;

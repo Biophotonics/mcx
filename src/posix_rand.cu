@@ -18,7 +18,6 @@
 #define MCX_RNG_NAME       "POSIX erand48"
 
 #define RAND_BUF_LEN       4        //register arrays
-#define RAND_SEED_LEN      4        //48 bit packed with 64bit length
 #define LOG_MT_MAX         22.1807097779182f
 #define LCG_MULTIPLIER     0x5deece66dull
 #define LCG_INCREMENT      0xb
@@ -79,7 +78,7 @@ __device__ float rand_uniform01(RandType t[RAND_BUF_LEN]){
 }
 
 __device__ void gpu_rng_init(RandType t[RAND_BUF_LEN], uint *n_seed,int idx){
-    __seed48_r((ushort *)(n_seed+idx*RAND_BUF_LEN),t);
+    __seed48_r((ushort *)(n_seed)+idx*RAND_BUF_LEN,t);
 }
 __device__ void gpu_rng_reseed(RandType t[RAND_BUF_LEN],uint cpuseed[],uint idx,float reseed){
 }
